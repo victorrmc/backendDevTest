@@ -11,6 +11,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -44,7 +46,7 @@ public class SimilarProductControllerTest {
     }
 
     @Test
-    void getErrrorSimilarProducts() {
+    void getErrorSimilarProducts() {
         when(similarProductService.getSimilarProducts("999"))
                 .thenReturn(Mono.error(WebClientResponseException.NotFound.create
                         (404, "Not found", null, null, null, null)));
@@ -53,5 +55,17 @@ public class SimilarProductControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    void getSimilarProductsEmpty() {
+        when(similarProductService.getSimilarProducts("000"))
+                .thenReturn(Mono.just(new ArrayList<>()));
+
+        webTestClient.get().uri("/product/000/similar")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk().expectBody()
+                .jsonPath("$.size()").isEqualTo(0);
     }
 }

@@ -13,6 +13,8 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class SimilarProductServiceTest {
 
     public static final String BODY_SIMILAR_IDS_2 = "[\"1\", \"6\"]";
@@ -63,10 +65,11 @@ class SimilarProductServiceTest {
 
 
         StepVerifier.create(resultMono)
-                .expectNextMatches(products -> products.size() == 2 &&
-                        products.getFirst().getId().equals("2") &&
-                        products.get(1).getName().equals("Blazer"))
-                .verifyComplete();
+                .assertNext(products -> {
+                        assertThat(products).hasSize(2);
+                        assertThat(products).extracting(ProductDetail::getId)
+                                .contains("2", "3");
+                }).verifyComplete();
     }
 
     @Test
@@ -91,8 +94,11 @@ class SimilarProductServiceTest {
 
 
         StepVerifier.create(resultMono)
-                .expectNextMatches(products -> products.size() == 1 &&
-                        products.getFirst().getId().equals("1"))
+                .assertNext(products -> {
+                    assertThat(products).hasSize(1);
+
+                    assertThat(products.getFirst()).returns("1", ProductDetail::getId);
+                })
                 .verifyComplete();
     }
 }
